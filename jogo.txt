@@ -1,0 +1,589 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Missão Matemática</title>
+
+
+<style>
+    *{
+        margin:0;
+        padding:0;
+        box-sizing:border-box;
+        font-family: 'Trebuchet MS', sans-serif;
+    }
+
+
+    body{
+        background:#d9c2ff;
+        overflow:hidden;
+    }
+
+
+    .screen{
+        width:100vw;
+        height:100vh;
+        display:flex;
+        flex-direction:column;
+        justify-content:center;
+        align-items:center;
+        border:14px solid #6f42c1;
+        position:relative;
+        background:
+        radial-gradient(circle at top left, #ffd4f3 0%, transparent 20%),
+        radial-gradient(circle at bottom right, #b7d7ff 0%, transparent 20%),
+        #d9c2ff;
+    }
+
+
+    h1{
+        font-size:64px;
+        color:#6a1b9a;
+        text-shadow:3px 3px 0px #ffffff;
+        margin-bottom:30px;
+        text-align:center;
+    }
+
+
+    button{
+        padding:15px 35px;
+        border:none;
+        border-radius:15px;
+        background:#8a63d2;
+        color:white;
+        font-size:24px;
+        cursor:pointer;
+        transition:0.3s;
+        box-shadow:0 4px 0 #5d3394;
+    }
+
+
+    button:hover{
+        transform:scale(1.05);
+        background:#9c78e2;
+    }
+
+
+    .authors{
+        position:absolute;
+        bottom:20px;
+        text-align:center;
+        color:#5a2c84;
+        font-size:20px;
+    }
+
+
+    #gameScreen{
+        display:none;
+        padding:20px;
+        text-align:center;
+    }
+
+
+    .topBar{
+        width:100%;
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-bottom:20px;
+        padding:0 20px;
+    }
+
+
+    .info{
+        font-size:26px;
+        color:#5a2c84;
+        font-weight:bold;
+    }
+
+
+    .phase{
+        font-size:28px;
+        color:#6f42c1;
+    }
+
+
+    .question{
+        font-size:64px;
+        margin:15px 0;
+        font-weight:bold;
+    }
+
+
+    .pink{
+        color:#ff4fbf;
+    }
+
+
+    .blue{
+        color:#3f7cff;
+    }
+
+
+    .apples{
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        flex-wrap:wrap;
+        gap:10px;
+        margin:20px 0;
+        min-height:90px;
+    }
+
+
+    .apple{
+        font-size:42px;
+    }
+
+
+    input{
+        width:180px;
+        padding:15px;
+        font-size:28px;
+        text-align:center;
+        border-radius:12px;
+        border:3px solid #8a63d2;
+        margin-top:15px;
+        outline:none;
+    }
+
+
+    .message{
+        margin-top:20px;
+        min-height:90px;
+        font-size:24px;
+        color:#5a2c84;
+        width:80%;
+        background:#f4e8ff;
+        border-radius:15px;
+        padding:15px;
+    }
+
+
+    .success{
+        color:#1c8b3c;
+        font-weight:bold;
+    }
+
+
+    .error{
+        color:#d63384;
+        font-weight:bold;
+    }
+
+
+    .confetti{
+        position:absolute;
+        width:12px;
+        height:12px;
+        top:-10px;
+        animation:fall linear forwards;
+        opacity:0.8;
+    }
+
+
+    @keyframes fall{
+        to{
+            transform:translateY(110vh) rotate(720deg);
+        }
+    }
+
+
+    #finalScreen{
+        display:none;
+        text-align:center;
+    }
+
+
+    #finalScreen h2{
+        font-size:55px;
+        color:#6a1b9a;
+        margin-bottom:20px;
+    }
+
+
+    #finalScreen p{
+        font-size:32px;
+        color:#5a2c84;
+        margin-bottom:25px;
+    }
+</style>
+</head>
+
+
+<body>
+
+
+<!-- TELA INICIAL -->
+<div class="screen" id="startScreen">
+    <h1>Missão Matemática</h1>
+
+
+    <button onclick="startGame()">Jogar</button>
+
+
+    <div class="authors">
+        <p>Autoras do jogo:</p>
+        <strong>Isadora Batista e Beatriz Fagundes</strong>
+    </div>
+</div>
+
+
+<!-- TELA DO JOGO -->
+<div class="screen" id="gameScreen">
+
+
+    <div class="topBar">
+        <div class="info" id="score">⭐ Pontos: 0</div>
+        <div class="phase" id="phaseText">Fase 1</div>
+        <div class="info" id="attempts">Tentativas: 2</div>
+    </div>
+
+
+    <div class="question" id="question"></div>
+
+
+    <div class="apples" id="apples"></div>
+
+
+    <input type="number" id="answer" placeholder="Resposta">
+
+
+    <br><br>
+
+
+    <button onclick="checkAnswer()">Responder</button>
+
+
+    <div class="message" id="message"></div>
+
+
+    <br>
+
+
+    <button id="nextBtn" onclick="nextQuestion()" style="display:none;">
+        Continuar
+    </button>
+
+
+</div>
+
+
+<!-- TELA FINAL -->
+<div class="screen" id="finalScreen">
+    <h2>🎉 Parabéns! 🎉</h2>
+    <p>Você concluiu a Missão Matemática!</p>
+    <p id="finalScore"></p>
+
+
+    <button onclick="location.reload()">Jogar Novamente</button>
+</div>
+
+
+<script>
+
+
+const phases = [
+    [
+        {a:5, b:2, op:"-"},
+        {a:3, b:1, op:"-"},
+        {a:4, b:2, op:"+"}
+    ],
+
+
+    [
+        {a:8, b:3, op:"-"},
+        {a:10, b:4, op:"-"},
+        {a:7, b:5, op:"+"}
+    ],
+
+
+    [
+        {a:12, b:5, op:"-"},
+        {a:15, b:7, op:"-"},
+        {a:9, b:6, op:"+"}
+    ],
+
+
+    [
+        {a:18, b:9, op:"-"},
+        {a:20, b:8, op:"-"},
+        {a:14, b:7, op:"+"}
+    ],
+
+
+    [
+        {a:25, b:12, op:"-"},
+        {a:30, b:15, op:"-"},
+        {a:18, b:9, op:"+"}
+    ]
+];
+
+
+let currentPhase = 0;
+let currentQuestion = 0;
+let score = 0;
+let attempts = 2;
+
+
+function startGame(){
+    document.getElementById("startScreen").style.display = "none";
+    document.getElementById("gameScreen").style.display = "flex";
+    loadQuestion();
+}
+
+
+function loadQuestion(){
+
+
+    document.getElementById("nextBtn").style.display = "none";
+    document.getElementById("message").innerHTML = "";
+    document.getElementById("answer").value = "";
+
+
+    attempts = 2;
+    updateAttempts();
+
+
+    const q = phases[currentPhase][currentQuestion];
+
+
+    const colorClass = (currentQuestion % 2 === 0) ? "pink" : "blue";
+
+
+    document.getElementById("question").className = "question " + colorClass;
+
+
+    document.getElementById("question").innerHTML =
+        `${q.a} ${q.op} ${q.b} = ?`;
+
+
+    document.getElementById("phaseText").innerHTML =
+        `Fase ${currentPhase + 1}`;
+
+
+    createApples(q);
+}
+
+
+function createApples(q){
+
+
+    const applesDiv = document.getElementById("apples");
+    applesDiv.innerHTML = "";
+
+
+    let total = q.a;
+
+
+    for(let i=0; i<total; i++){
+
+
+        const apple = document.createElement("div");
+        apple.classList.add("apple");
+
+
+        if(q.op === "-" && i >= (q.a - q.b)){
+            apple.innerHTML = "🍎";
+            apple.style.opacity = "0.3";
+        }else{
+            apple.innerHTML = "🍎";
+        }
+
+
+        applesDiv.appendChild(apple);
+    }
+}
+
+
+function checkAnswer(){
+
+
+    const q = phases[currentPhase][currentQuestion];
+
+
+    let correct;
+
+
+    if(q.op === "+"){
+        correct = q.a + q.b;
+    }else{
+        correct = q.a - q.b;
+    }
+
+
+    const userAnswer =
+        Number(document.getElementById("answer").value);
+
+
+    const msg = document.getElementById("message");
+
+
+    if(userAnswer === correct){
+
+
+        score += 5;
+
+
+        document.getElementById("score").innerHTML =
+            `⭐ Pontos: ${score}`;
+
+
+        msg.innerHTML =
+            `<div class="success">
+                🎉 Parabéns! Você acertou!
+            </div>`;
+
+
+        createConfetti();
+
+
+        document.getElementById("nextBtn").style.display = "inline-block";
+
+
+    }else{
+
+
+        attempts--;
+        updateAttempts();
+
+
+        if(attempts > 0){
+
+
+            msg.innerHTML =
+            `<div class="error">
+                ❌ Resposta incorreta.<br><br>
+                Observe a conta com atenção.<br>
+                ${q.a} ${q.op} ${q.b}
+            </div>`;
+
+
+        }else{
+
+
+            let explanation = "";
+
+
+            if(q.op === "-"){
+                explanation =
+                `Para resolver ${q.a} - ${q.b},
+                retiramos ${q.b} maçãs de ${q.a}.<br>
+                Resultado correto: <strong>${correct}</strong>`;
+            }else{
+                explanation =
+                `Para resolver ${q.a} + ${q.b},
+                juntamos as quantidades.<br>
+                Resultado correto: <strong>${correct}</strong>`;
+            }
+
+
+            msg.innerHTML =
+            `<div class="error">
+                ❌ Você usou as duas tentativas.<br><br>
+                ${explanation}
+            </div>`;
+
+
+            document.getElementById("nextBtn").style.display =
+                "inline-block";
+        }
+    }
+}
+
+
+function nextQuestion(){
+
+
+    currentQuestion++;
+
+
+    if(currentQuestion >= 3){
+        currentQuestion = 0;
+        currentPhase++;
+    }
+
+
+    if(currentPhase >= 5){
+
+
+        document.getElementById("gameScreen").style.display = "none";
+        document.getElementById("finalScreen").style.display = "flex";
+
+
+        document.getElementById("finalScore").innerHTML =
+            `Pontuação Final: ${score} pontos`;
+
+
+        createConfetti(120);
+
+
+        return;
+    }
+
+
+    loadQuestion();
+}
+
+
+function updateAttempts(){
+    document.getElementById("attempts").innerHTML =
+        `Tentativas: ${attempts}`;
+}
+
+
+function createConfetti(quantity = 50){
+
+
+    const colors = [
+        "#ff66c4",
+        "#7d5cff",
+        "#66b3ff",
+        "#ffffff"
+    ];
+
+
+    for(let i=0; i<quantity; i++){
+
+
+        const confetti = document.createElement("div");
+
+
+        confetti.classList.add("confetti");
+
+
+        confetti.style.left = Math.random() * 100 + "vw";
+
+
+        confetti.style.background =
+            colors[Math.floor(Math.random()*colors.length)];
+
+
+        confetti.style.animationDuration =
+            (Math.random()*3 + 2) + "s";
+
+
+        confetti.style.width =
+            (Math.random()*10 + 6) + "px";
+
+
+        confetti.style.height =
+            confetti.style.width;
+
+
+        document.body.appendChild(confetti);
+
+
+        setTimeout(()=>{
+            confetti.remove();
+        },5000);
+    }
+}
+
+
+</script>
+
+
+</body>
+</html>
